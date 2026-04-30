@@ -54,3 +54,27 @@ def logout():
     session.clear()
     flash('Successfully logged out', 'success')
     return redirect(url_for('auth.login'))
+
+@bp.route('/change-password', methods=['GET', 'POST'])
+def change_password():
+    if 'user_id' not in session:
+        flash('Please log in to change your password', 'error')
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        if new_password != confirm_password:
+            flash('New passwords do not match', 'error')
+            return render_template('change_password.html')
+
+        try:
+            user_model.change_password(session['user_id'], current_password, new_password)
+            flash('Password changed successfully!', 'success')
+            return redirect(url_for('posts.timeline'))
+        except ValueError as e:
+            flash(str(e), 'error')
+
+    return render_template('change_password.html')

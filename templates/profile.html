@@ -14,19 +14,21 @@
             <span><strong>{{ follower_count }}</strong> followers</span>
             <span><strong>{{ following_count }}</strong> following</span>
         </div>
-        {% if not is_own_profile %}
         <div class="profile-actions">
-            {% if is_following %}
-            <form method="POST" action="{{ url_for('users.unfollow', username=user.username) }}">
-                <button type="submit" class="btn btn-secondary">Unfollow</button>
-            </form>
+            {% if is_own_profile %}
+            <a href="{{ url_for('auth.change_password') }}" class="btn btn-secondary">Change Password</a>
             {% else %}
-            <form method="POST" action="{{ url_for('users.follow', username=user.username) }}">
-                <button type="submit" class="btn btn-primary">Follow</button>
-            </form>
+                {% if is_following %}
+                <form method="POST" action="{{ url_for('users.unfollow', username=user.username) }}">
+                    <button type="submit" class="btn btn-secondary">Unfollow</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('users.follow', username=user.username) }}">
+                    <button type="submit" class="btn btn-primary">Follow</button>
+                </form>
+                {% endif %}
             {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <div class="profile-posts">

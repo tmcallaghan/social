@@ -2,6 +2,7 @@ from datetime import datetime
 from bson import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.db import get_db
+import re
 
 def create_user(username, email, password, display_name=None, bio=None):
     """Create a new user account."""
@@ -138,3 +139,35 @@ def is_following(follower_id, followee_id):
         return False
 
     return followee_id in user.get('following', [])
+
+def validate_password(password):
+    """Validate password meets requirements."""
+    if len(password) < 8:
+        raise ValueError('Password must be at least 8 characters long')
+
+    if not re.search(r'[A-Za-z]', password):
+        raise ValueError('Password must contain at least one letter')
+
+    if not re.search(r'\d', password):
+        raise ValueError('Password must contain at least one number')
+
+def change_password(user_id, current_password, new_password):
+    """Change a user's password."""
+    db = get_db()
+
+    if isinstance(user_id, str):
+        user_id = ObjectId(user_id)
+
+    user = db.users.find_one({'_id': user_id})
+    if not user:
+        raise ValueError('User not found')
+
+    if not check_password_hash(user['password_hash'], current_password):
+        raise ValueError('Current password is incorrect')
+
+    validate_password(new_password)
+
+    db.users.update_one(
+        {'_id': user_id},
+        {'$set': {'password_hash': generate_password_hash(new_password)}}
+    )
